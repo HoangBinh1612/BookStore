@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>500 - Lỗi hệ thống</title>
+</head>
+
+<body>
+    <div style="text-align:center; padding:50px;">
+        <h1>500</h1>
+        <h2>Lỗi hệ thống</h2>
+        <p>Đã xảy ra lỗi. Vui lòng thử lại sau.</p>
+
+        <div th:if="${errorDetail != null && !errorDetail.isEmpty()}"
+            style="font-family: monospace; color: #c53030; background: #fff5f5; border: 1px solid #feb2b2; padding: 15px; margin: 20px auto; max-width: 800px; text-align: left; border-radius: 5px; white-space: pre-wrap;">
+            <strong>Chi tiết lỗi:</strong><br>
+            <span th:text="${errorDetail}"></span>
+        </div>
+
+        <a th:href="@{/}">← Về trang chủ</a>
+    </div>
+</body>
+
+</html>

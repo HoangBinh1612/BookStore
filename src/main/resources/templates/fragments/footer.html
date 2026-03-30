@@ -1,0 +1,22 @@
+<!-- ===================================================================
+  FOOTER FRAGMENT - Chân trang dùng chung
+  Sử dụng: th:replace="~{fragments/footer :: footer}"
+  =================================================================== -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<footer th:fragment="footer" class="footer">
+  <div class="footer-content">
+    <p class="footer-brand"><i class="bi bi-shop"></i> DuongBinh Shop</p>
+    <p>© 2026 Đồ án giữa kỳ J2EE | HoangDuongBinh</p>
+    <p class="footer-links">
+      <a th:href="@{/}"><i class="bi bi-house"></i> Trang chủ</a> ·
+      <a th:href="@{/login}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a> ·
+      <a th:href="@{/register}"><i class="bi bi-person-plus"></i> Đăng ký</a>
+    </p>
+  </div>
+  <!-- JavaScript chung cho tất cả trang -->
+  <script th:src="@{/js/main.js}"></script>
+</footer>
+
+</html>

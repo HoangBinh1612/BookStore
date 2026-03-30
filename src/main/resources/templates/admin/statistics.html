@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+
+    <div class="container">
+        <div class="admin-header">
+            <h2 class="page-title"><i class="bi bi-bar-chart"></i> Báo cáo & Thống kê</h2>
+            <div style="display:flex; gap:0.5rem;">
+                <!-- Toolbar for switching pages -->
+                <a th:href="@{/admin/books}" class="btn btn-secondary btn-sm"><i class="bi bi-bag"></i> Sách</a>
+                <a th:href="@{/admin/orders}" class="btn btn-secondary btn-sm"><i class="bi bi-receipt"></i> Đơn
+                    hàng</a>
+                <a th:href="@{/admin/inventory}" class="btn btn-secondary btn-sm"><i class="bi bi-box-seam"></i> Kho
+                    hàng</a>
+                <a th:href="@{/admin/categories}" class="btn btn-secondary btn-sm"><i class="bi bi-folder"></i> Danh
+                    mục</a>
+            </div>
+        </div>
+
+        <!-- Dashboard Thống kê -->
+        <div class="statistics-dashboard"
+            style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+
+            <!-- Doanh Thu -->
+            <div class="stat-card"
+                style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%); color: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display:flex; justify-content: space-between; align-items:flex-start;">
+                    <div>
+                        <h3
+                            style="margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #e6fffa;">
+                            Tổng Doanh Thu</h3>
+                        <p style="margin: 0.5rem 0 0; font-size: 2.5rem; font-weight: 700; color: white;"
+                            th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></p>
+                    </div>
+                    <div style="font-size: 3rem; opacity: 0.8;">
+                        <i class="bi bi-cash-coin"></i>
+                    </div>
+                </div>
+                <p style="margin: 1rem 0 0; font-size: 0.85rem; color: #c6f6d5;">Từ các đơn hàng "Đã thanh toán" & "Hoàn
+                    thành"</p>
+            </div>
+
+            <!-- Đơn Hàng Hoàn Tất -->
+            <div class="stat-card"
+                style="background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%); color: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display:flex; justify-content: space-between; align-items:flex-start;">
+                    <div>
+                        <h3
+                            style="margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #ebf8ff;">
+                            Đơn Hàng Thành Công</h3>
+                        <p style="margin: 0.5rem 0 0; font-size: 2.5rem; font-weight: 700; color: white;"
+                            th:text="${totalCompletedOrders} + ' Đơn'"></p>
+                    </div>
+                    <div style="font-size: 3rem; opacity: 0.8;">
+                        <i class="bi bi-bag-check"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng Số Sách Đã Bán -->
+            <div class="stat-card"
+                style="background: linear-gradient(135deg, #ecc94b 0%, #d69e2e 100%); color: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display:flex; justify-content: space-between; align-items:flex-start;">
+                    <div>
+                        <h3
+                            style="margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #fffff0;">
+                            Sách Đã Bán Ra</h3>
+                        <p style="margin: 0.5rem 0 0; font-size: 2.5rem; font-weight: 700; color: white;"
+                            th:text="${totalItemsSold} + ' Quyển'"></p>
+                    </div>
+                    <div style="font-size: 3rem; opacity: 0.8;">
+                        <i class="bi bi-book"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng Số Đầu Sách Trên Hệ Thống -->
+            <div class="stat-card"
+                style="background: linear-gradient(135deg, #9f7aea 0%, #805ad5 100%); color: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="display:flex; justify-content: space-between; align-items:flex-start;">
+                    <div>
+                        <h3
+                            style="margin: 0; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #faf5ff;">
+                            Đầu Sách Đang Bán</h3>
+                        <p style="margin: 0.5rem 0 0; font-size: 2.5rem; font-weight: 700; color: white;"
+                            th:text="${totalBooks} + ' Loại'"></p>
+                    </div>
+                    <div style="font-size: 3rem; opacity: 0.8;">
+                        <i class="bi bi-journal-album"></i>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+
+</html>

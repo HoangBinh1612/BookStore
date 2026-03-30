@@ -1,0 +1,125 @@
+<!-- ===================================================================
+ GIỎ HÀNG - cart.html
+ Hiển thị sản phẩm kiểu card, ảnh cố định kích thước — Modern Redesign
+ =================================================================== -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giỏ hàng - DuongBinh Shop</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+
+    <div class="container">
+        <!-- Page Header -->
+        <div class="cart-page-header">
+            <h2><i class="bi bi-cart3"></i> Giỏ hàng của bạn</h2>
+            <span class="cart-item-count" th:if="${#lists.size(cartItems) > 0}"
+                th:text="${#lists.size(cartItems)} + ' sản phẩm'"></span>
+        </div>
+
+        <!-- Thông báo -->
+        <div th:if="${cartMessage}" class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            <span th:text="${cartMessage}"></span>
+        </div>
+
+        <!-- ============ GIỎ HÀNG CÓ SẢN PHẨM ============ -->
+        <div th:if="${#lists.size(cartItems) > 0}" class="cart-layout">
+            <!-- Danh sách sản phẩm -->
+            <div class="cart-items-section">
+                <div class="cart-item-card" th:each="item : ${cartItems}">
+                    <!-- Ảnh sản phẩm (kích thước cố định) -->
+                    <div class="cart-item-image"
+                        style="position:relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">
+                        <img th:if="${item.imageUrl != null && !item.imageUrl.isEmpty()}" th:src="${item.imageUrl}"
+                            th:alt="${item.bookName}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <i th:unless="${item.imageUrl != null && !item.imageUrl.isEmpty()}"
+                            class="bi bi-book text-muted" style="font-size: 2rem; color: #cbd5e0;"></i>
+                    </div>
+
+                    <!-- Thông tin sản phẩm -->
+                    <div class="cart-item-details">
+                        <a href="#" class="cart-item-title" th:text="${item.bookName}">Tên sách</a>
+                        <span class="cart-item-unit-price"
+                            th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                    </div>
+
+                    <!-- Số lượng -->
+                    <div class="cart-item-qty-section">
+                        <span class="cart-qty-label">Số lượng</span>
+                        <form th:action="@{/cart/update}" method="post" class="cart-qty-form">
+                            <input type="hidden" name="bookId" th:value="${item.bookId}">
+                            <div class="cart-qty-control">
+                                <input type="number" name="quantity" th:value="${item.quantity}" min="1" max="99"
+                                    class="cart-qty-input" onchange="this.form.submit()">
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Thành tiền -->
+                    <div class="cart-item-subtotal-section">
+                        <span class="cart-subtotal-label">Thành tiền</span>
+                        <span class="cart-item-subtotal-value"
+                            th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                    </div>
+
+                    <!-- Nút xóa -->
+                    <div class="cart-item-remove">
+                        <a th:href="@{/cart/remove/{id}(id=${item.bookId})}" class="cart-remove-btn"
+                            onclick="return confirm('Xóa sản phẩm này khỏi giỏ?')">
+                            <i class="bi bi-trash3"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tổng cộng + Thanh toán -->
+            <div class="cart-summary-card">
+                <h3><i class="bi bi-receipt"></i> Tóm tắt đơn hàng</h3>
+
+                <div class="cart-summary-row">
+                    <span>Số sản phẩm</span>
+                    <span th:text="${#lists.size(cartItems)}"></span>
+                </div>
+
+                <div class="cart-summary-divider"></div>
+
+                <div class="cart-summary-total">
+                    <span>Tổng cộng</span>
+                    <span class="cart-total-value"
+                        th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                </div>
+
+                <div class="cart-summary-actions">
+                    <a th:href="@{/checkout}" class="btn btn-primary btn-lg cart-checkout-btn">
+                        <i class="bi bi-credit-card"></i> Thanh toán
+                    </a>
+                    <a th:href="@{/}" class="btn btn-outline cart-continue-btn">
+                        <i class="bi bi-arrow-left"></i> Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ GIỎ HÀNG TRỐNG ============ -->
+        <div class="empty-state-v2" th:if="${#lists.size(cartItems) == 0}">
+            <div class="empty-icon"><i class="bi bi-cart-x"></i></div>
+            <h3>Giỏ hàng trống</h3>
+            <p>Bạn chưa thêm sản phẩm nào vào giỏ hàng.</p>
+            <a th:href="@{/}" class="btn btn-primary">
+                <i class="bi bi-shop"></i> Xem sản phẩm
+            </a>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+
+</html>

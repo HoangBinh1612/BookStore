@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết đơn hàng #<span th:text="${invoice.id}"></span> - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #fed7d7;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.4rem 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f7fafc;
+        }
+
+        .info-label {
+            color: #718096;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .items-table th {
+            background: #2d3748;
+            color: #fff;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .items-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .items-table tr:hover td {
+            background: #f7fafc;
+        }
+
+        .book-img-sm {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .add-item-card {
+            background: #f0fff4;
+            border: 2px dashed #68d391;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .add-item-card h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #276749;
+            margin-bottom: 1rem;
+        }
+
+        .add-item-form {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .add-item-form .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .add-item-form label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            display: block;
+            color: #276749;
+        }
+
+        .qty-small {
+            width: 90px !important;
+        }
+
+        .status-select {
+            padding: 0.55rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn-delete-item {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #feb2b2;
+            border-radius: 6px;
+            padding: 0.3rem 0.65rem;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all 0.2s;
+        }
+
+        .btn-delete-item:hover {
+            background: #c53030;
+            color: #fff;
+        }
+
+        .total-recalc {
+            color: #e53e3e;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .status-badge-admin {
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="detail-header">
+            <div>
+                <h2 class="page-title">
+                    <i class="bi bi-receipt-cutoff"></i>
+                    Chi tiết Đơn hàng #<span th:text="${invoice.id}"></span>
+                </h2>
+                <a th:href="@{/admin/orders}" class="btn btn-secondary btn-sm" style="margin-top:0.4rem;">
+                    <i class="bi bi-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+
+        <!-- Thông báo -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div style="display:grid; grid-template-columns: 1fr 350px; gap:1.5rem; align-items:start;">
+            <!-- CỘT TRÁI: Sản phẩm trong đơn hàng -->
+            <div>
+                <!-- Bảng sản phẩm hiện có -->
+                <div class="info-card">
+                    <h3><i class="bi bi-bag"></i> Sản phẩm trong đơn hàng</h3>
+                    <table class="items-table">
+                        <thead>
+                            <tr>
+                                <th>Ảnh</th>
+                                <th>Tên sách</th>
+                                <th>Đơn giá</th>
+                                <th>Số lượng</th>
+                                <th>Thành tiền</th>
+                                <th>Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${invoice.itemInvoices}">
+                                <td>
+                                    <img th:if="${item.book != null}"
+                                        th:src="${item.book.imageUrl != null and !item.book.imageUrl.isEmpty()} ? @{${item.book.imageUrl}} : 'https://via.placeholder.com/48?text=Book'"
+                                        class="book-img-sm" th:alt="${item.book.title}"
+                                        onerror="this.src='https://via.placeholder.com/48?text=Book'">
+                                    <span th:if="${item.book == null}" style="color:#a0aec0; font-size:0.8rem;">Đã
+                                        xóa</span>
+                                </td>
+                                <td>
+                                    <strong th:text="${item.book != null ? item.book.title : 'Sách không tồn tại'}">Tên
+                                        sách</strong>
+                                </td>
+                                <td
+                                    th:text="${item.book != null ? #numbers.formatDecimal(item.book.price, 0, 'COMMA', 0, 'POINT') + ' ₫' : 'N/A'}">
+                                </td>
+                                <!-- Form cập nhật số lượng -->
+                                <td>
+                                    <form th:action="@{/admin/orders/{id}/update-item(id=${invoice.id})}" method="post"
+                                        style="display:flex; gap:0.4rem; align-items:center;">
+                                        <input type="hidden" name="itemId" th:value="${item.id}">
+                                        <input type="number" name="quantity" th:value="${item.quantity}" min="1"
+                                            max="99" class="form-control qty-small">
+                                        <button type="submit" class="btn btn-outline btn-sm" title="Lưu số lượng"><i
+                                                class="bi bi-check2"></i></button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <span th:if="${item.book != null}" class="total-recalc"
+                                        th:text="${#numbers.formatDecimal(item.book.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                                    </span>
+                                </td>
+                                <!-- Xóa item -->
+                                <td>
+                                    <form th:action="@{/admin/orders/{id}/delete-item(id=${invoice.id})}" method="post"
+                                        onsubmit="return confirm('Xóa sách này khỏi đơn hàng?');">
+                                        <input type="hidden" name="itemId" th:value="${item.id}">
+                                        <button type="submit" class="btn-delete-item">
+                                            <i class="bi bi-trash3"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${invoice.itemInvoices == null or invoice.itemInvoices.isEmpty()}">
+                                <td colspan="6" style="text-align:center; color:#a0aec0; padding:2rem;">
+                                    Đơn hàng chưa có sản phẩm nào.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Thêm sách vào đơn -->
+                <div class="add-item-card">
+                    <h3><i class="bi bi-plus-circle"></i> Thêm sách vào đơn hàng</h3>
+                    <form th:action="@{/admin/orders/{id}/add-item(id=${invoice.id})}" method="post"
+                        class="add-item-form">
+                        <div class="form-group">
+                            <label for="bookId">Chọn sách</label>
+                            <select id="bookId" name="bookId" class="form-control" required>
+                                <option value="">-- Chọn sách --</option>
+                                <option th:each="book : ${allBooks}" th:value="${book.id}"
+                                    th:text="${book.title + ' (' + #numbers.formatDecimal(book.price, 0, 'COMMA', 0, 'POINT') + ' ₫)'}">
+                                </option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Số lượng</label>
+                            <input id="quantity" type="number" name="quantity" value="1" min="1" max="99"
+                                class="form-control qty-small">
+                        </div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-plus-lg"></i> Thêm vào đơn
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- CỘT PHẢI: Thông tin đơn hàng -->
+            <div>
+                <div class="info-card">
+                    <h3><i class="bi bi-info-circle"></i> Thông tin đơn hàng</h3>
+                    <div class="info-row">
+                        <span class="info-label">Mã đơn</span>
+                        <span class="info-value">#<span th:text="${invoice.id}"></span></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Khách hàng</span>
+                        <span class="info-value"
+                            th:text="${invoice.user != null ? invoice.user.username : 'N/A'}"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email</span>
+                        <span class="info-value" th:text="${invoice.user != null ? invoice.user.email : 'N/A'}"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ngày đặt</span>
+                        <span class="info-value"
+                            th:text="${invoice.invoiceDate != null ? #dates.format(invoice.invoiceDate, 'dd/MM/yyyy HH:mm') : 'N/A'}"></span>
+                    </div>
+                    <div class="info-row" style="border-bottom:none; margin-top:0.5rem;">
+                        <span class="info-label">Tổng tiền hiện tại</span>
+                        <span style="color:#e53e3e; font-size:1.2rem; font-weight:700;"
+                            th:text="${#numbers.formatDecimal(invoice.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                    </div>
+                </div>
+
+                <!-- Cập nhật trạng thái -->
+                <div class="info-card">
+                    <h3><i class="bi bi-arrow-repeat"></i> Cập nhật trạng thái</h3>
+                    <form th:action="@{/admin/orders/update-status/{id}(id=${invoice.id})}" method="post">
+                        <div class="form-group">
+                            <select name="status" class="form-control status-select"
+                                style="width:100%; margin-bottom:0.75rem;">
+                                <option value="Chua thanh toan"
+                                    th:selected="${invoice.status == 'Chua thanh toan' or invoice.status == 'Chưa thanh toán'}">
+                                    Chưa thanh toán</option>
+                                <option value="Da thanh toan"
+                                    th:selected="${invoice.status == 'Da thanh toan' or invoice.status == 'Đã thanh toán'}">
+                                    Đã thanh toán</option>
+                                <option value="Dang xu ly"
+                                    th:selected="${invoice.status == 'Dang xu ly' or invoice.status == 'Đang xử lý'}">
+                                    Đang xử lý</option>
+                                <option value="Dang giao hang"
+                                    th:selected="${invoice.status == 'Dang giao hang' or invoice.status == 'Đang giao hàng'}">
+                                    Đang giao hàng</option>
+                                <option value="Hoan thanh"
+                                    th:selected="${invoice.status == 'Hoan thanh' or invoice.status == 'Hoàn thành'}">
+                                    Hoàn thành</option>
+                                <option value="Da huy"
+                                    th:selected="${invoice.status == 'Da huy' or invoice.status == 'Đã hủy'}">Đã hủy
+                                </option>
+                            </select>
+                        </div>
+                        <!-- Hidden để redirect về detail page thay vì list -->
+                        <input type="hidden" name="redirect" value="detail">
+                        <input type="hidden" name="invoiceId" th:value="${invoice.id}">
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="bi bi-check-circle"></i> Lưu trạng thái
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Cập nhật tổng tiền -->
+                <div class="info-card">
+                    <h3><i class="bi bi-calculator"></i> Cập nhật tổng tiền</h3>
+                    <p style="font-size:0.85rem; color:#718096; margin-bottom:0.75rem;">
+                        Tự động tính lại từ sản phẩm hoặc nhập thủ công.
+                    </p>
+                    <form th:action="@{/admin/orders/{id}/update-price(id=${invoice.id})}" method="post">
+                        <div class="form-group" style="display:flex; gap:0.5rem; align-items:center;">
+                            <input type="number" name="price" th:value="${invoice.price}" min="0" step="1000"
+                                class="form-control" style="flex:1;">
+                            <button type="submit" class="btn btn-outline btn-sm">
+                                <i class="bi bi-save"></i> Lưu
+                            </button>
+                        </div>
+                    </form>
+                    <form th:action="@{/admin/orders/{id}/recalculate-price(id=${invoice.id})}" method="post"
+                        style="margin-top:0.5rem;">
+                        <button type="submit" class="btn btn-secondary btn-block btn-sm">
+                            <i class="bi bi-arrow-clockwise"></i> Tính lại tự động từ sản phẩm
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+
+</html>

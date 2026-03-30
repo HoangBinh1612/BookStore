@@ -1,0 +1,114 @@
+<!-- ===================================================================
+ ADMIN - FORM THÊM/SỬA SẢN PHẨM - admin/product-form.html
+ Form nhập liệu: Tên, Giá, Mô tả, URL ảnh, Danh mục
+ =================================================================== -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - Admin'">Form sản phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+
+    <div class="container">
+        <a th:href="@{/admin/books}" class="btn btn-secondary" style="margin-bottom: 1.5rem;">
+            ← Quay lại danh sách
+        </a>
+
+        <div class="admin-form-card" style="max-width: 700px;">
+            <h3 th:text="${pageTitle}">Form sách</h3>
+
+            <form th:action="@{/admin/books/save}" method="post" th:object="${book}" enctype="multipart/form-data">
+                <!-- Hidden ID (khi sửa) -->
+                <input type="hidden" th:field="*{id}">
+
+                <!-- Tên sách -->
+                <div class="form-group">
+                    <label for="title">Tên sách *</label>
+                    <input type="text" id="title" th:field="*{title}" class="form-control admin-input"
+                        th:classappend="${#fields.hasErrors('title')} ? 'is-invalid'" placeholder="Nhập tên sách">
+                    <span th:if="${#fields.hasErrors('title')}" class="error-message" th:errors="*{title}"></span>
+                </div>
+
+                <!-- Tác giả -->
+                <div class="form-group">
+                    <label for="author">Tác giả *</label>
+                    <input type="text" id="author" th:field="*{author}" class="form-control admin-input"
+                        th:classappend="${#fields.hasErrors('author')} ? 'is-invalid'" placeholder="Nhập tác giả">
+                    <span th:if="${#fields.hasErrors('author')}" class="error-message" th:errors="*{author}"></span>
+                </div>
+
+                <!-- Giá -->
+                <div class="form-group">
+                    <label for="price">Giá (VNĐ) *</label>
+                    <input type="number" id="price" th:field="*{price}" class="form-control admin-input"
+                        th:classappend="${#fields.hasErrors('price')} ? 'is-invalid'" placeholder="Nhập giá" min="0"
+                        step="1000">
+                    <span th:if="${#fields.hasErrors('price')}" class="error-message" th:errors="*{price}"></span>
+                </div>
+
+                <!-- Tồn kho -->
+                <div class="form-group">
+                    <label for="stock">Số lượng tồn kho *</label>
+                    <input type="number" id="stock" th:field="*{stock}" class="form-control admin-input"
+                        th:classappend="${#fields.hasErrors('stock')} ? 'is-invalid'" placeholder="Nhập số lượng"
+                        min="0">
+                    <span th:if="${#fields.hasErrors('stock')}" class="error-message" th:errors="*{stock}"></span>
+                </div>
+
+                <!-- File ảnh Upload -->
+                <div class="form-group">
+                    <label for="imageFile">Tải lên file ảnh bìa (.jpg, .png)</label>
+                    <input type="file" id="imageFile" name="imageFile" class="form-control admin-input"
+                        accept="image/png, image/jpeg, image/jpg, image/webp">
+                    <small style="color:#718096; display:block; margin-top:5px;">Ưu tiên ảnh tải lên từ máy
+                        tính.</small>
+                </div>
+
+                <!-- Link ảnh URL -->
+                <div class="form-group">
+                    <label for="imageUrl">Hoặc nhập Link Ảnh ngoài (URL)</label>
+                    <input type="text" id="imageUrl" th:field="*{imageUrl}" class="form-control admin-input"
+                        placeholder="https://example.com/image.jpg">
+                    <small style="color:#718096; display:block; margin-top:5px;">Nếu không tải file thì hệ thống sẽ dùng
+                        link này (nếu có).</small>
+
+                    <!-- Hiển thị lại ảnh cũ (khi đang chỉnh sửa) -->
+                    <div th:if="${book.imageUrl != null && !book.imageUrl.isEmpty()}" style="margin-top: 10px;">
+                        <p style="font-size:0.85rem; color:#4a5568; margin-bottom: 5px;">Ảnh hiện tại:</p>
+                        <img th:src="${book.imageUrl}" alt="Cover"
+                            style="height: 100px; max-width: 100%; border-radius: 4px; object-fit: cover; border: 1px solid #e2e8f0;" />
+                    </div>
+                </div>
+
+                <!-- Danh mục -->
+                <div class="form-group">
+                    <label for="category">Danh mục</label>
+                    <select id="category" th:field="*{category.id}" class="form-control admin-input">
+                        <option value="">-- Chọn danh mục --</option>
+                        <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Nút lưu -->
+                <div style="display:flex; gap:0.5rem; margin-top:1.5rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <span th:text="${book.id != null ? 'Cập nhật' : 'Thêm sách mới'}"></span>
+                    </button>
+                    <a th:href="@{/admin/books}" class="btn btn-secondary">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+
+</html>

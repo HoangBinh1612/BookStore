@@ -1,0 +1,110 @@
+<!-- ===================================================================
+  THANH TOÁN - checkout.html
+  Hiển thị tóm tắt đơn hàng + form nhập địa chỉ + chọn phương thức
+  =================================================================== -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - DuongBinh Shop</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+
+    <div class="container">
+        <h2 class="page-title"><i class="bi bi-credit-card"></i> Thanh toán</h2>
+
+        <!-- Thông báo lỗi -->
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <form th:action="@{/checkout}" method="post">
+            <div class="checkout-grid">
+                <!-- Cột trái: Tóm tắt đơn hàng -->
+                <div class="checkout-form-card">
+                    <!-- Thông tin giao hàng -->
+                    <h3><i class="bi bi-geo-alt"></i> Thông tin giao hàng</h3>
+                    <div class="form-group">
+                        <label for="shippingAddress">Địa chỉ giao hàng</label>
+                        <textarea id="shippingAddress" name="shippingAddress" class="form-control"
+                            placeholder="Nhập địa chỉ giao hàng đầy đủ (số nhà, đường, phường, quận, thành phố)"
+                            required rows="3" style="resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Phương thức thanh toán -->
+                    <h3 style="margin-top: 1.5rem;"><i class="bi bi-wallet2"></i> Phương thức thanh toán</h3>
+                    <div class="payment-methods">
+                        <label class="payment-method-card active" id="label-cod">
+                            <input type="radio" name="paymentMethod" value="COD" checked onchange="selectPayment(this)">
+                            <div class="payment-method-content">
+                                <i class="bi bi-cash-stack payment-method-icon"></i>
+                                <div>
+                                    <strong>Tiền mặt (COD)</strong>
+                                    <span>Thanh toán khi nhận hàng</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="payment-method-card" id="label-qr">
+                            <input type="radio" name="paymentMethod" value="QR_PAY" onchange="selectPayment(this)">
+                            <div class="payment-method-content">
+                                <i class="bi bi-qr-code payment-method-icon"></i>
+                                <div>
+                                    <strong>QR Pay</strong>
+                                    <span>Chuyển khoản ngân hàng qua QR</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Nút xác nhận -->
+                    <div style="margin-top: 1.5rem; display: flex; gap: 0.8rem;">
+                        <a th:href="@{/cart}" class="btn btn-secondary">← Quay lại giỏ hàng</a>
+                        <button type="submit" class="btn btn-primary btn-lg" style="flex:1;">
+                            <i class="bi bi-check-circle"></i> Xác nhận đặt hàng
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Cột phải: Tóm tắt đơn hàng -->
+                <div class="checkout-summary-card">
+                    <h3><i class="bi bi-receipt"></i> Tóm tắt đơn hàng</h3>
+                    <div th:each="item : ${cartItems}" class="checkout-item">
+                        <img th:src="${item.imageUrl != null and !item.imageUrl.isEmpty()} ? @{${item.imageUrl}} : 'https://via.placeholder.com/50?text=Book'"
+                            class="checkout-item-img" th:alt="${item.bookName}"
+                            onerror="this.src='https://via.placeholder.com/50?text=Book'">
+                        <div class="checkout-item-info">
+                            <span class="checkout-item-name" th:text="${item.bookName}"></span>
+                            <span class="checkout-item-qty" th:text="'x' + ${item.quantity}"></span>
+                        </div>
+                        <span class="checkout-item-price"
+                            th:text="${#numbers.formatDecimal(item.subtotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                        </span>
+                    </div>
+                    <div class="checkout-total">
+                        <span>Tổng thanh toán:</span>
+                        <span class="total-price"
+                            th:text="${#numbers.formatDecimal(cartTotal, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <script>
+        function selectPayment(radio) {
+            document.querySelectorAll('.payment-method-card').forEach(function (card) {
+                card.classList.remove('active');
+            });
+            radio.closest('.payment-method-card').classList.add('active');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán đơn hàng - DuongBinh BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .qr-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .qr-title {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .qr-subtitle {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 25px;
+        }
+
+        .qr-image-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .qr-image {
+            width: 280px;
+            height: 280px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            padding: 10px;
+            background: #fafafa;
+            object-fit: contain;
+        }
+
+        .qr-fallback {
+            display: none;
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .payment-details {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #e0e0e0;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .copy-btn {
+            background: #e2e8f0;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 8px;
+            color: #4a5568;
+        }
+
+        .copy-btn:hover {
+            background: #cbd5e0;
+        }
+
+        #manualCheckBtn {
+            margin-top: 12px;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <nav th:replace="~{fragments/header :: navbar}"></nav>
+
+    <div class="container">
+        <div class="qr-container">
+            <h2 class="qr-title"><i class="bi bi-qr-code"></i> Thanh Toán Đơn Hàng</h2>
+            <p class="qr-subtitle" th:text="'Mã đơn: #' + ${invoice.id}">Mã đơn: #</p>
+
+            <!-- Badge trạng thái -->
+            <div id="paymentStatus"
+                th:class="${invoice.status == 'Da thanh toan' or invoice.status == 'Đã thanh toán' ? 'status-badge status-paid' : 'status-badge status-pending'}">
+                <i th:if="${invoice.status != 'Da thanh toan' and invoice.status != 'Đã thanh toán'}"
+                    class="loader"></i>
+                <i th:if="${invoice.status == 'Da thanh toan' or invoice.status == 'Đã thanh toán'}"
+                    class="bi bi-check-circle-fill"></i>
+                <span
+                    th:text="${invoice.status == 'Da thanh toan' or invoice.status == 'Đã thanh toán' ? 'Thanh toán thành công!' : 'Đang chờ thanh toán...'}">Trạng
+                    thái</span>
+            </div>
+
+            <!-- Phần QR (ẩn khi đã thanh toán) -->
+            <div id="qrContent"
+                th:style="${invoice.status == 'Da thanh toan' or invoice.status == 'Đã thanh toán' ? 'display:none;' : ''}">
+
+                <!-- Ảnh QR - dùng onerror để fallback nếu không load được -->
+                <div class="qr-image-wrapper">
+                    <img id="qrImg" th:src="${qrUrl}" alt="Mã QR Thanh Toán" class="qr-image"
+                        onerror="handleQrError(this)">
+
+                    <!-- Fallback khi ảnh không load được -->
+                    <div class="qr-fallback" id="qrFallback">
+                        <i class="bi bi-exclamation-triangle" style="color:#f6ad55; margin-right:4px;"></i>
+                        Ảnh QR không tải được.
+                        <a th:href="${qrUrl}" target="_blank" style="color:var(--primary); font-weight:600;">
+                            Nhấn vào đây để xem / tải QR
+                        </a>
+                    </div>
+                </div>
+
+                <p style="color: #e74c3c; font-size: 0.9em; margin-bottom: 20px;">
+                    <i class="bi bi-info-circle"></i> Quét mã QR bằng app ngân hàng. Nội dung chuyển khoản phải giữ
+                    nguyên.
+                </p>
+
+                <!-- Chi tiết thanh toán -->
+                <div class="payment-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Ngân hàng:</span>
+                        <span class="detail-value">TPBank</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Số tài khoản:</span>
+                        <span class="detail-value" th:text="${bankAccount}"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Chủ tài khoản:</span>
+                        <span class="detail-value" th:text="${bankAccountName}"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Số tiền:</span>
+                        <span class="detail-value" style="color:#e74c3c; font-size:1.1em;"
+                            th:text="${#numbers.formatDecimal(invoice.price, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Nội dung CK:</span>
+                        <span>
+                            <strong class="detail-value" id="descText" th:text="${description}"></strong>
+                            <button class="copy-btn" onclick="copyDesc()"><i class="bi bi-clipboard"></i> Sao
+                                chép</button>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Nút kiểm tra thủ công (quan trọng khi chạy localhost) -->
+                <button id="manualCheckBtn" class="btn btn-outline" onclick="checkStatus()">
+                    <i class="bi bi-arrow-clockwise"></i> Kiểm tra trạng thái thanh toán
+                </button>
+
+                <!-- Nút xác nhận đã chuyển khoản -->
+                <button id="confirmPaidBtn" class="btn btn-primary"
+                    style="margin-top: 10px; width: 100%; background: #38a169; border-color: #38a169;"
+                    onclick="confirmPaid()">
+                    <i class="bi bi-check2-circle"></i> Tôi đã chuyển khoản thành công
+                </button>
+
+                <!-- Nút hủy đơn -->
+                <form th:action="@{/payment/cancel/{id}(id=${invoice.id})}" method="post"
+                    onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');"
+                    style="margin-top: 15px;">
+                    <button type="submit" class="btn btn-outline"
+                        style="color:#e74c3c; border-color:#e74c3c; width:100%;">
+                        <i class="bi bi-x-circle"></i> Hủy đơn hàng này
+                    </button>
+                </form>
+            </div>
+
+            <!-- Khu vực thành công (hiện khi đã thanh toán) -->
+            <div id="successActions"
+                th:style="${invoice.status == 'Da thanh toan' or invoice.status == 'Đã thanh toán' ? '' : 'display:none;'}">
+                <div style="margin-bottom: 30px; margin-top: 20px;">
+                    <i class="bi bi-gift" style="font-size: 4rem; color: #ff6b6b"></i>
+                    <h3 style="margin-top: 15px;">Cảm ơn bạn đã mua sách!</h3>
+                    <p style="color: #666">Đơn hàng của bạn sẽ sớm được giao.</p>
+                </div>
+                <a th:href="@{/}" class="btn btn-primary"><i class="bi bi-house"></i> Về trang chủ</a>
+                <a th:href="@{/orders}" class="btn btn-outline" style="margin-left:10px;"><i class="bi bi-receipt"></i>
+                    Xem đơn hàng</a>
+            </div>
+
+            <!-- Script xử lý -->
+            <script th:inline="javascript">
+                var invoiceId = /*[[${invoice.id}]]*/ 1;
+                var currentStatus = /*[[${invoice.status}]]*/ 'Chưa thanh toán';
+
+                // Khi ảnh QR không tải được (lỗi CORS hoặc mạng)
+                function handleQrError(img) {
+                    img.style.display = 'none';
+                    document.getElementById('qrFallback').style.display = 'block';
+                }
+
+                // Sao chép nội dung chuyển khoản
+                function copyDesc() {
+                    var text = document.getElementById('descText').innerText;
+                    navigator.clipboard.writeText(text).then(function () {
+                        alert('Đã sao chép: ' + text);
+                    });
+                }
+
+                // Giao diện khi thanh toán thành công
+                function markAsPaid() {
+                    document.getElementById('paymentStatus').className = 'status-badge status-paid';
+                    document.getElementById('paymentStatus').innerHTML = '<i class="bi bi-check-circle-fill"></i> <span>Thanh toán thành công!</span>';
+                    document.getElementById('qrContent').style.display = 'none';
+                    document.getElementById('successActions').style.display = 'block';
+                }
+
+                // Xác nhận thanh toán thủ công khi webhook không tự gọi được
+                function confirmPaid() {
+                    var btn = document.getElementById('confirmPaidBtn');
+                    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Đang xác nhận...'; }
+
+                    fetch('/api/sepay/manual-confirm/' + invoiceId, { method: 'POST' })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            if (data.success) {
+                                markAsPaid();
+                            } else {
+                                alert('Đã có lỗi: ' + data.message);
+                                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2-circle"></i> Tôi đã chuyển khoản'; }
+                            }
+                        })
+                        .catch(function () {
+                            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check2-circle"></i> Tôi đã chuyển khoản'; }
+                        });
+                }
+
+                // Gọi API kiểm tra trạng thái
+                function checkStatus() {
+                    var btn = document.getElementById('manualCheckBtn');
+                    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loader"></span> Đang kiểm tra...'; }
+
+                    fetch('/api/sepay/check-status/' + invoiceId)
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            if (data.status === 'Da thanh toan' || data.status === 'Đã thanh toán') {
+                                markAsPaid();
+                            } else {
+                                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Kiểm tra lại'; }
+                            }
+                        })
+                        .catch(function (err) {
+                            console.log('Lỗi:', err);
+                            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Kiểm tra lại'; }
+                        });
+                }
+
+                // Tự động poll mỗi 4 giây khi chưa thanh toán
+                if (currentStatus !== 'Da thanh toan' && currentStatus !== 'Đã thanh toán') {
+                    setInterval(checkStatus, 4000);
+                }
+            </script>
+        </div>
+    </div>
+
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+
+</html>
